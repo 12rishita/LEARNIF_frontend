@@ -33,7 +33,7 @@ const LoginPage = () => {
     try {
       const { token, user } = await authService.login(email, password);
       login(user, token);
-      toast.success("Welcome back to MindForge!");
+      toast.success("Welcome back to Learnif_AI!");
       navigate("/dashboard");
     } catch (err) {
       setError(err.message || "Invalid credentials");
@@ -161,7 +161,7 @@ const LoginPage = () => {
         </div>
 
         <p className="text-center text-xs text-slate-400 mt-6 tracking-widest">
-          MindForge AI • Secure Access
+          Learnif AI • Secure Access
         </p>
       </div>
 

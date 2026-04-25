@@ -64,7 +64,7 @@ const RegisterPage = () => {
             </div>
 
             <h1 className="text-3xl font-bold text-slate-800">
-              Join <span className="text-indigo-600">MindForge AI</span>
+              Join <span className="text-indigo-600">Learnif AI</span>
             </h1>
             <p className="text-sm text-slate-500 mt-2">
               Create your AI learning account
@@ -186,7 +186,7 @@ const RegisterPage = () => {
         </div>
 
         <p className="text-center text-xs text-slate-400 mt-6 tracking-widest">
-          MindForge AI • Secure Access
+          Learnif AI • Secure Access
         </p>
       </div>
 

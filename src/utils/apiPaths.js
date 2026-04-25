@@ -1,5 +1,12 @@
-// export const BASE_URL = "http://localhost:8000";
-export const BASE_URL = "https://mindforge-ai-backend.onrender.com";
+const isLocalhost =
+  typeof window !== "undefined" &&
+  ["localhost", "127.0.0.1"].includes(window.location.hostname);
+
+export const BASE_URL =
+  import.meta.env.VITE_API_BASE_URL ||
+  (isLocalhost
+    ? "http://localhost:8000"
+    : "https://mindforge-ai-backend.onrender.com");
 
 export const API_PATHS = {
   AUTH: {
@@ -45,5 +52,6 @@ export const API_PATHS = {
 
   PROGRESS: {
     GET_DASHBOARD: "/api/progress/dashboard",
+    TRACK_STUDY_SESSION: "/api/progress/study-session",
   },
 };

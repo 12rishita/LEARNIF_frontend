@@ -69,7 +69,7 @@ const QuizCard = ({ quiz, onDelete }) => {
         </div>
 
         {isCompleted ? (
-          <Link to={`/quizzes/${quiz._id}`} className="block">
+          <Link to={`/quizzes/${quiz._id}/results`} className="block">
             <button
               className="w-full h-14 inline-flex items-center justify-center gap-2
               rounded-2xl border-2 border-indigo-200

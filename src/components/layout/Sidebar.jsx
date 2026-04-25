@@ -9,7 +9,8 @@ import {
   BrainCircuit,
   BookOpen,
   X,
-  Sparkles,
+  MessageSquare,
+  ClipboardCheck,
 } from "lucide-react";
 
 const Sidebar = ({ isSidebarOpen, toggleSidebar }) => {
@@ -24,6 +25,8 @@ const Sidebar = ({ isSidebarOpen, toggleSidebar }) => {
   const navLinks = [
     { to: "/dashboard", icon: LayoutDashboard, text: "Dashboard" },
     { to: "/documents", icon: FileText, text: "Documents" },
+    { to: "/ai-bot", icon: MessageSquare, text: "AI Bot" },
+    { to: "/quizzes", icon: ClipboardCheck, text: "Quizzes" },
     { to: "/flashcards", icon: BookOpen, text: "Flashcards" },
     { to: "/profile", icon: User, text: "Profile" },
   ];
@@ -52,7 +55,7 @@ const Sidebar = ({ isSidebarOpen, toggleSidebar }) => {
             </div>
             <div className="flex flex-col">
               <h1 className="text-sm font-black text-slate-900 tracking-tight leading-none uppercase italic">
-                MindForge
+                Learnif
                 <span className="text-indigo-600"> AI</span>
               </h1>
               <span className="text-[9px] font-bold text-slate-400 tracking-widest uppercase">

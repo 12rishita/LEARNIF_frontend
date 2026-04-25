@@ -1,8 +1,11 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { ArrowLeft, ExternalLink, FileText, Sparkles } from "lucide-react";
 import toast from "react-hot-toast";
+
 import documentService from "../../services/documentService";
+import progressService from "../../services/progressService";
+import { BASE_URL } from "../../utils/apiPaths";
 import Spinner from "../../components/common/Spinner";
 import Tabs from "../../components/common/Tabs";
 import ChatInterface from "../../components/chat/ChatInterface";
@@ -10,17 +13,34 @@ import AiActions from "../../components/ai/AiActions";
 import FlashcardManager from "../../components/flashcards/FlashcardManager";
 import QuizManager from "../../components/quizzes/QuizManager";
 
+const MIN_SESSION_SECONDS = 15;
+
+const statusStyles = {
+  ready: "bg-emerald-50 text-emerald-600",
+  processing: "bg-amber-50 text-amber-600",
+  failed: "bg-rose-50 text-rose-600",
+};
+
+const statusLabel = {
+  ready: "Processed",
+  processing: "Processing",
+  failed: "Needs Attention",
+};
+
 const DocumentDetailPage = () => {
   const { id } = useParams();
-  const [document, setDocument] = useState(null);
+  const [documentData, setDocumentData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("Content");
+
+  const sessionStartRef = useRef(null);
+  const sessionTrackedRef = useRef(false);
 
   useEffect(() => {
     const fetchDocumentDetails = async () => {
       try {
         const data = await documentService.getDocumentById(id);
-        setDocument(data);
+        setDocumentData(data);
       } catch (error) {
         toast.error("Failed to fetch document details.");
         console.error(error);
@@ -28,17 +48,55 @@ const DocumentDetailPage = () => {
         setLoading(false);
       }
     };
+
     fetchDocumentDetails();
   }, [id]);
 
+  useEffect(() => {
+    sessionStartRef.current = Date.now();
+    sessionTrackedRef.current = false;
+
+    const flushStudySession = () => {
+      if (sessionTrackedRef.current || !sessionStartRef.current) return;
+
+      const durationSeconds = Math.round(
+        (Date.now() - sessionStartRef.current) / 1000
+      );
+
+      if (durationSeconds < MIN_SESSION_SECONDS) return;
+
+      sessionTrackedRef.current = true;
+      progressService
+        .trackStudySession({ documentId: id, durationSeconds })
+        .catch(() => {});
+    };
+
+    const handleVisibilityChange = () => {
+      if (window.document.visibilityState === "hidden") {
+        flushStudySession();
+      }
+    };
+
+    window.addEventListener("beforeunload", flushStudySession);
+    window.document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      flushStudySession();
+      window.removeEventListener("beforeunload", flushStudySession);
+      window.document.removeEventListener(
+        "visibilitychange",
+        handleVisibilityChange
+      );
+    };
+  }, [id]);
+
   const getPdfUrl = () => {
-    if (!document?.data?.filePath) return null;
-    // return `http://localhost:8000${document.data.filePath}`;
-    return `https://mindforge-ai-backend.onrender.com${document.data.filePath}`;
+    if (!documentData?.data?.filePath) return null;
+    return `${BASE_URL}${documentData.data.filePath}`;
   };
 
   const renderContent = () => {
-    if (!document?.data?.filePath) {
+    if (!documentData?.data?.filePath) {
       return (
         <div className="flex flex-col items-center justify-center py-20 bg-white rounded-[2rem] border border-dashed border-slate-200">
           <FileText className="w-12 h-12 text-slate-300 mb-4" />
@@ -69,7 +127,7 @@ const DocumentDetailPage = () => {
             rel="noopener noreferrer"
             className="group inline-flex items-center gap-2 text-xs font-bold text-indigo-600 hover:text-indigo-700 bg-indigo-50 px-4 py-2 rounded-xl transition-all"
           >
-            Open Fullscreen{" "}
+            Open Fullscreen
             <ExternalLink
               size={14}
               className="group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform"
@@ -113,7 +171,7 @@ const DocumentDetailPage = () => {
     );
   }
 
-  if (!document) {
+  if (!documentData) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#F8FAFC]">
         <div className="text-center">
@@ -131,10 +189,11 @@ const DocumentDetailPage = () => {
     );
   }
 
+  const currentStatus = documentData.data?.status || "processing";
+
   return (
     <div className="min-h-screen bg-[#F8FAFC] p-8">
       <div className="max-w-7xl mx-auto">
-        {/* Navigation & Header */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10">
           <div>
             <Link
@@ -148,7 +207,7 @@ const DocumentDetailPage = () => {
               Back to Library
             </Link>
             <h1 className="text-3xl font-black text-slate-900 tracking-tight flex items-center gap-3">
-              {document.data?.title || "Document"}
+              {documentData.data?.title || "Document"}
               <Sparkles className="text-amber-400" size={24} />
             </h1>
             <p className="text-slate-500 font-medium mt-1">
@@ -157,15 +216,18 @@ const DocumentDetailPage = () => {
           </div>
 
           <div className="flex items-center gap-3 bg-white p-2 rounded-2xl border border-slate-200/60 shadow-sm">
-            <div className="px-4 py-2 bg-emerald-50 rounded-xl">
-              <span className="text-[10px] font-black text-emerald-600 uppercase tracking-wider">
-                Status: Processed
+            <div
+              className={`px-4 py-2 rounded-xl ${
+                statusStyles[currentStatus] || statusStyles.processing
+              }`}
+            >
+              <span className="text-[10px] font-black uppercase tracking-wider">
+                Status: {statusLabel[currentStatus] || "Processing"}
               </span>
             </div>
           </div>
         </div>
 
-        {/* Dynamic Tabs Section */}
         <div className="bg-transparent">
           <Tabs tabs={tabs} activeTab={activeTab} setActiveTab={setActiveTab} />
         </div>
