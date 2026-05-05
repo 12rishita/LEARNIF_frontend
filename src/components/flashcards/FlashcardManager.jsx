@@ -50,7 +50,9 @@ const FlashcardManager = ({ documentId }) => {
       toast.success("New flashcard set generated");
       fetchFlashcardSets();
     } catch (err) {
-      toast.error(err?.message || "Failed to generate flashcards");
+      toast.error(
+        err?.error || err?.message || "Failed to generate flashcards"
+      );
     } finally {
       setGenerating(false);
     }
